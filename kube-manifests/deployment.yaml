@@ -9,6 +9,8 @@ spec:
   selector:
     matchLabels:
       app: eks-go
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
@@ -17,5 +19,7 @@ spec:
       containers:
         - name: eks-go
           image: CONTAINER_IMAGE
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
+              protocol: TCP
