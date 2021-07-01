@@ -6,21 +6,46 @@ phases:
       - echo Logging in to Docker Hub...
       - echo $DOCKERHUB_PASSWORD | docker login --username $DOCKERHUB_USERNAME --password-stdin
       - echo Logging in to Amazon ECR.....
+      # Login to ECR Registry for docker to push the image to ECR Repository
       - aws --version
       - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
       - REPOSITORY_URI=224193334793.dkr.ecr.us-west-2.amazonaws.com/ecs-cicd-nginx
+      - EKS_KUBECTL_ROLE_ARN = arn:aws:iam::224193334793:role/EksCodeBuildKubectlRole
+      - EKS_CLUSTER_NAME = go-eks
       - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+      # Update Kube config Home Directory
+      - export KUBECONFIG=$HOME/.kube/config
+
   build:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
+       # Update Image tag in our Kubernetes Deployment Manifest        
+      - echo "Update Image tag in kube-manifest..."
+      - sed -i 's@CONTAINER_IMAGE@'"$REPOSITORY_URI:$IMAGE_TAG"'@' kube-manifests/deployment.yml
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Writing image definitions file...
-      - printf '[{"name":"ecs-cicd-nginx","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      # - printf '[{"name":"ecs-cicd-nginx","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - echo "Setting Environment Variables related to AWS CLI for Kube Config Setup"          
+      - CREDENTIALS=$(aws sts assume-role --role-arn $EKS_KUBECTL_ROLE_ARN --role-session-name codebuild-kubectl --duration-seconds 900)
+      - export AWS_ACCESS_KEY_ID="$(echo ${CREDENTIALS} | jq -r '.Credentials.AccessKeyId')"
+      - export AWS_SECRET_ACCESS_KEY="$(echo ${CREDENTIALS} | jq -r '.Credentials.SecretAccessKey')"
+      - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
+      - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
+      # Setup kubectl with our EKS Cluster              
+      - echo "Update Kube Config"      
+      - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
+      # Apply changes to our Application using kubectl
+      - echo "Apply changes to kube manifests"            
+      - kubectl apply -f kube-manifests/
+      - echo "Completed applying changes to Kubernetes Objects"           
+      # Create Artifacts which we can use if we want to continue our pipeline for other stages
+      - printf '[{"name":"deployment.yaml","imageUri":"%s"}]' $REPOSITORY_URI:$TAG > build.json
 artifacts:
-    files: imagedefinitions.json
+    - build.json
+    - kube-manifests/*

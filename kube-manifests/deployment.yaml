@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eks-go-deployment
+  labels:
+    app: eks-go
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eks-go
+  template:
+    metadata:
+      labels:
+        app: eks-go
+    spec:
+      containers:
+        - name: eks-go
+          image: CONTAINER_IMAGE
+          ports:
+            - containerPort: 8080
