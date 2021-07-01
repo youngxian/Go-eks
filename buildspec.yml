@@ -21,7 +21,7 @@ phases:
       - docker build -t $REPOSITORY_URI:$IMAGE_TAG .
        # Update Image tag in our Kubernetes Deployment Manifest        
       - echo "Update Image tag in kube-manifest..."
-      - sed -i 's@CONTAINER_IMAGE@'"$REPOSITORY_URI:$IMAGE_TAG"'@' kube-manifests/deployment.yml
+      - sed -i 's@CONTAINER_IMAGE@'"$REPOSITORY_URI:$IMAGE_TAG"'@' kube-manifests/deployment.yaml
   post_build:
     commands:
       - echo Build completed on `date`
