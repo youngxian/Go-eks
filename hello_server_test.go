@@ -4,7 +4,7 @@ import "testing"
 
 func TestGreetingSpecific(t *testing.T) {
 	greeting := CreateGreeting("John")
-	if greeting != "Hello, John\n" {
+	if greeting != "Hello, Today is Wednesday\n" {
 		t.Errorf("Greeting was incorrect, got: %s, want: %s.", greeting, "Hello, John\n")
 	}
 }
