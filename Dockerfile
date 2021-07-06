@@ -5,6 +5,7 @@ RUN apk add --no-cache git
 # Set the Current Working Directory inside the container
 WORKDIR /tmp/go-sample-app
 
+
 # We want to populate the module cache based on the go.{mod,sum} files.
 COPY go.mod .
 COPY go.sum .
@@ -15,7 +16,6 @@ COPY . .
 
 # Unit tests
 # RUN CGO_ENABLED=0 go test -v
-
 # Build the Go app
 RUN go build -o ./out/go-sample-app .
 
