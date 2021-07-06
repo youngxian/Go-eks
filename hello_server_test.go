@@ -1,7 +1,6 @@
 package main
 
 import "testing"
-
 func TestGreetingSpecific(t *testing.T) {
 	greeting := CreateGreeting("John")
 	if greeting != "Hello, Today is Wednesday\n" {
