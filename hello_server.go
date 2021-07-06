@@ -21,7 +21,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 func CreateGreeting(name string) string {
 	if name == "" {
-		name = "Today is thursday"
+		name = "Today is Friday"
 	}
 	return "Hello,  " + name + "\n"
 }
