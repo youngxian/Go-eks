@@ -15,7 +15,6 @@ COPY . .
 
 # Unit tests
 # RUN CGO_ENABLED=0 go test -v
-
 # Build the Go app
 RUN go build -o ./out/go-sample-app .
 
