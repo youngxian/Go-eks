@@ -1,4 +1,4 @@
-package hello_server
+package main
 
 import "testing"
 
