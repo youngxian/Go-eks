@@ -49,3 +49,7 @@ artifacts:
   files:
     - build.json
     - kube-manifests/*
+    - go.sum
+    - go.mod
+    - hello_server_test.go
+    - hello_server.go
